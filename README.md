@@ -1,7 +1,18 @@
 # Task Manager API
 
 Backend REST API for a task management application designed to work with multiple workspaces, users and roles.  
-The project is built with a clean architecture mindset and prepared to scale towards a microservices approach.
+The project is built following a layered architecture with clean code principles,
+designed to evolve towards a hexagonal or microservices architecture
+
+---
+
+## Why this project?
+
+This project was designed to demonstrate:
+- Domain-driven thinking and relational data modeling
+- Real-world authorization scenarios (users, roles, workspaces)
+- Clean separation of concerns in a Spring Boot application
+- Scalability considerations from early stages
 
 ---
 
@@ -103,25 +114,41 @@ The API will be available at:
 ```arduino
 http://localhost:8080
 ```
-
 ## Security (Work in Progress)
 
-- Spring Security dependency included
-- JWT-based authentication planned
-- Role-based access control per workspace
+- Spring Security configured
+- JWT-based authentication (access & refresh tokens)
+- Password encryption using BCrypt
+- Role-based authorization per workspace
+- Workspace-level authorization checks
 
 
 ## Roadmap
 
+Phase 1 – Domain & Persistence
 - 👍 Domain model design
 - 👍 JPA entities and relationships
-- Repositories
+- Repository layer
+
+Phase 2 – API Layer
 - DTO layer
-- Authentication & authorization (JWT)
 - REST controllers
-- OpenAPI / Swagger documentation
-- Frontend integration (Angular)
+- Global exception handling
+
+Phase 3 – Security
+- JWT authentication (access & refresh tokens)
+- Password encryption (BCrypt)
+- Role-based authorization per workspace
+
+Phase 4 – Core Features
+- Task scheduling (date & time slots)
+- Task state transitions
+- Advanced task filtering
+
+Phase 5 – Documentation & Frontend
+- OpenAPI / Swagger
+- Angular frontend
+
 
 ## Notes
-
 This project is part of a personal portfolio and is continuously evolving to reflect best practices in backend development.
