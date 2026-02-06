@@ -1,5 +1,5 @@
 package com.franlines.taskmanager.enums;
 
-public enum UserState {
+public enum AccountState {
     ACTIVE, BANNED
 }
