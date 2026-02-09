@@ -27,11 +27,11 @@ public class Tag {
     Long id;
 
     /**
-     * Nombre único de la etiqueta. (Obligatorio)
+     * Nombre de la etiqueta.
      */
     @NotBlank(message = "El nombre del tag no debe estar vacío")
     @Size(max = 20, message = "El nombre del tag debe tener menos de 20 caracteres")
-    @Column(name = "tag_name", nullable = false, unique = true)
+    @Column(name = "tag_name", nullable = false)
     String name;
 
     /**
@@ -40,4 +40,7 @@ public class Tag {
     @Pattern(regexp = "^#([A-Fa-f0-9]{6})$", message = "Error en el formato de creación del color.")
     String color;
 
+    @ManyToOne
+    @JoinColumn(name = "workspace_id")
+    private Workspace workspace;
 }

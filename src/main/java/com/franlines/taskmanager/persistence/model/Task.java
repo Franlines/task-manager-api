@@ -7,7 +7,9 @@ import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.*;
 
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -35,14 +37,14 @@ public class Task {
     @NotBlank(message = "La tarea debe tener un título")
     @Size(min = 3, max = 20, message = "El título de la tarea debe tener entre 3 y 20 caracteres")
     @Column(name = "title", nullable = false)
-    String titulo;
+    String title;
 
     /**
      * Descripción de la tarea. (Opcional)
      */
-    @Size(min = 3, max = 20, message = "La descripción de la tarea debe tener entre 3 y 20 caracteres")
+    @Size(min = 3, max = 200, message = "La descripción de la tarea debe tener entre 3 y 200 caracteres")
     @Column(name = "description")
-    String descripcion;
+    String description;
 
 
     /**
@@ -103,6 +105,18 @@ public class Task {
      */
     @Column(name = "updated_date")
     LocalDateTime updatedDate;
+
+    /**
+     * Variables LocalDate para controlar el tiempo de realización de la tarea.
+     */
+    @Column(name = "task_day")
+    private LocalDate day;  // Día específico de la tarea
+
+    @Column(name = "start_time")
+    private LocalTime startTime;  // Hora de inicio
+
+    @Column(name = "end_time")
+    private LocalTime endTime;    // Hora final prevista
 
     /**
      * Estado de la tarea

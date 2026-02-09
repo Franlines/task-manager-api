@@ -11,8 +11,6 @@ import java.util.List;
 import java.util.Optional;
 
 public interface WorkspaceUserRepository extends JpaRepository<WorkspaceUser, Long> {
-// TODO: ALGO FALLA. Da error al iniciar
-
     Optional<WorkspaceUser> findByUserAndWorkspace(User user, Workspace workspace);
 
     List<WorkspaceUser> findByWorkspace(Workspace workspace);

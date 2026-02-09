@@ -2,6 +2,7 @@ package com.franlines.taskmanager.persistence.model;
 
 import com.franlines.taskmanager.enums.AccountState;
 import com.franlines.taskmanager.enums.InvitationStatus;
+import com.franlines.taskmanager.enums.WorkspaceRole;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -51,7 +52,7 @@ public class WorkspaceUser {
     @Column(name = "user_invitation_status", nullable = false)
     InvitationStatus invitationStatus;
 
-    /**
+    /**-
      * Estado de la cuenta del usuario dentro del workspace
      * (ACTIVE, BANNED).
      */
@@ -66,6 +67,10 @@ public class WorkspaceUser {
     @Column(name = "registered_date", nullable = false, updatable = false)
     private LocalDateTime registeredDate;
 
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "workspace_role")
+    private WorkspaceRole workspaceRole;  // Necesitas crear este enum
 
     /**
      * Inicializa los valores por defecto antes de persistir la entidad.

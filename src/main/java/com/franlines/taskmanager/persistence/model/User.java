@@ -11,6 +11,7 @@ import lombok.Setter;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 
 /**
     Entidad que representa a un usuario del sistema
@@ -87,6 +88,12 @@ public class User {
      */
     @Column(name = "birth_date")
     LocalDate birthDate;
+
+    /**
+     * URL o Path de la foto del usuario. (Opcional)
+     */
+    @Column(name = "photo_url")
+    private String photoUrl;
 
     /**
      * Callback JPA que inicializa la fecha de registro.
