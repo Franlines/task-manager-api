@@ -40,7 +40,7 @@ public class Workspace {
      */
     @Size(min = 3, max = 100, message = "El descripción del workspace debe tener entre 3 y 100 caracteres")
     @Column(name = "description")
-    String descripcion;
+    String description;
 
     /**
      * Usuario creador del espacio de trabajo.
