@@ -21,6 +21,7 @@ import java.util.Map;
 public interface TaskRepository extends JpaRepository<Task, Long> {
 
     // ========== MÉTODOS SIN PAGINACIÓN ==========
+
     List<Task> findByWorkspace(Workspace workspace);
     List<Task> findByPrincipalUser(User user);
     List<Task> findByTaskState(TaskState state);
@@ -29,33 +30,28 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
     List<Task> findByWorkspaceAndDayBetween(Workspace workspace, LocalDate start, LocalDate end);
     List<Task> findByWorkspaceAndDay(Workspace workspace, LocalDate day);
 
-    // ========== MÉTODOS CON PAGINACIÓN ==========
+    // ========== MÉTODOS CON PAGINACIÓN BÁSICOS ==========
+
     Page<Task> findAll(Pageable pageable);
     Page<Task> findByWorkspace(Workspace workspace, Pageable pageable);
     Page<Task> findByPrincipalUser(User user, Pageable pageable);
     Page<Task> findByTaskState(TaskState state, Pageable pageable);
     Page<Task> findByWorkspaceAndTaskState(Workspace workspace, TaskState state, Pageable pageable);
-
-    // Métodos para vistas específicas con paginación
     Page<Task> findByWorkspaceAndDayBetween(Workspace workspace, LocalDate start, LocalDate end, Pageable pageable);
     Page<Task> findByWorkspaceAndDay(Workspace workspace, LocalDate day, Pageable pageable);
 
-    // Métodos por usuario en workspace
-    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.principalUser = :user")
-    Page<Task> findByWorkspaceAndPrincipalUser(
+    // ========== MÉTODOS ESPECIALES CON @Query ==========
+
+    // 1. Tareas vencidas
+    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.day < :today " +
+            "AND t.taskState != 'DONE' ORDER BY t.day DESC, t.startTime DESC")
+    Page<Task> findByOverdueTasks(
             @Param("workspace") Workspace workspace,
-            @Param("user") User user,
+            @Param("today") LocalDate today,
             Pageable pageable
     );
 
-    @Query("SELECT t FROM Task t JOIN t.sideUsers su WHERE t.workspace = :workspace AND su = :user")
-    Page<Task> findByWorkspaceAndSideUser(
-            @Param("workspace") Workspace workspace,
-            @Param("user") User user,
-            Pageable pageable
-    );
-
-    // Tareas donde el usuario es principal o secundario
+    // 2. Tareas por usuario (principal o secundario)
     @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND " +
             "(t.principalUser = :user OR :user MEMBER OF t.sideUsers)")
     Page<Task> findByWorkspaceAndUser(
@@ -64,7 +60,17 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             Pageable pageable
     );
 
-    // Método genérico para filtros
+    // 3. Búsqueda por texto
+    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND " +
+            "(LOWER(t.title) LIKE LOWER(CONCAT('%', :query, '%')) OR " +
+            "LOWER(t.description) LIKE LOWER(CONCAT('%', :query, '%')))")
+    Page<Task> searchInWorkspace(
+            @Param("workspace") Workspace workspace,
+            @Param("query") String query,
+            Pageable pageable
+    );
+
+    // 4. Filtros avanzados (solo con campos que SÍ existen)
     @Query("SELECT t FROM Task t WHERE " +
             "(:workspace IS NULL OR t.workspace = :workspace) AND " +
             "(:state IS NULL OR t.taskState = :state) AND " +
@@ -81,7 +87,7 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             Pageable pageable
     );
 
-    // Método para filtros con tags
+    // 5. Filtro por tags
     @Query("SELECT DISTINCT t FROM Task t JOIN t.tags tag WHERE " +
             "t.workspace = :workspace AND tag IN :tags")
     Page<Task> findByWorkspaceAndTagsIn(
@@ -90,17 +96,33 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             Pageable pageable
     );
 
-    // Búsqueda por texto (título o descripción)
-    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND " +
-            "(LOWER(t.title) LIKE LOWER(CONCAT('%', :search, '%')) OR " +
-            "LOWER(t.description) LIKE LOWER(CONCAT('%', :search, '%')))")
-    Page<Task> searchInWorkspace(
+    // 6. Tareas por usuario principal
+    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.principalUser = :user")
+    Page<Task> findByWorkspaceAndPrincipalUser(
             @Param("workspace") Workspace workspace,
-            @Param("search") String search,
+            @Param("user") User user,
             Pageable pageable
     );
 
-    // Métodos para estadísticas
+    // 7. Tareas por usuario secundario
+    @Query("SELECT t FROM Task t JOIN t.sideUsers su WHERE t.workspace = :workspace AND su = :user")
+    Page<Task> findByWorkspaceAndSideUser(
+            @Param("workspace") Workspace workspace,
+            @Param("user") User user,
+            Pageable pageable
+    );
+
+    // 8. Tareas próximas (desde hoy)
+    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.day >= :today " +
+            "ORDER BY t.day ASC, t.startTime ASC")
+    Page<Task> findUpcomingTasks(
+            @Param("workspace") Workspace workspace,
+            @Param("today") LocalDate today,
+            Pageable pageable
+    );
+
+    // ========== MÉTODOS DE ESTADÍSTICAS ==========
+
     @Query("SELECT t.taskState, COUNT(t) FROM Task t WHERE t.workspace = :workspace GROUP BY t.taskState")
     Map<TaskState, Long> countByWorkspaceAndTaskState(@Param("workspace") Workspace workspace);
 
@@ -112,21 +134,16 @@ public interface TaskRepository extends JpaRepository<Task, Long> {
             @Param("end") LocalDate end
     );
 
-    // Tareas próximas (hoy y futuras)
-    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.day >= :today " +
-            "ORDER BY t.day ASC, t.startTime ASC")
-    Page<Task> findUpcomingTasks(
-            @Param("workspace") Workspace workspace,
-            @Param("today") LocalDate today,
-            Pageable pageable
-    );
+    // ========== MÉTODOS ADICIONALES ÚTILES ==========
 
-    // Tareas vencidas (con día anterior a hoy y estado no completado)
-    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.day < :today " +
-            "AND t.taskState != 'DONE' ORDER BY t.day DESC")
-    Page<Task> findOverdueTasks(
+    // Tareas por rango de fechas y usuario
+    @Query("SELECT t FROM Task t WHERE t.workspace = :workspace AND t.day BETWEEN :start AND :end " +
+            "AND (t.principalUser = :user OR :user MEMBER OF t.sideUsers)")
+    Page<Task> findByWorkspaceAndDateRangeAndUser(
             @Param("workspace") Workspace workspace,
-            @Param("today") LocalDate today,
+            @Param("start") LocalDate start,
+            @Param("end") LocalDate end,
+            @Param("user") User user,
             Pageable pageable
     );
 }
